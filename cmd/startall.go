@@ -23,7 +23,7 @@ func startAllCmd() *cobra.Command {
 }
 
 func runStartAll(cmd *cobra.Command, _ []string) error {
-	setup, err := createSetup()
+	setup, err := createSetup(cmd.Context(), false)
 	if err != nil {
 		return fmt.Errorf("failed to create setup: %w", err)
 	}
@@ -32,12 +32,12 @@ func runStartAll(cmd *cobra.Command, _ []string) error {
 		setup.cfg.Paths.DAGsDir = dagsDir
 	}
 
-	ctx := setup.loggerContext(cmd.Context(), false)
-
 	scheduler, err := setup.scheduler()
 	if err != nil {
 		return fmt.Errorf("failed to initialize scheduler: %w", err)
 	}
+
+	ctx := setup.ctx
 
 	// Start scheduler in a goroutine
 	errChan := make(chan error, 1)
@@ -57,7 +57,7 @@ func runStartAll(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Start server in a goroutine
-	logger.Info(ctx, "Server initialization", "host", setup.cfg.Host, "port", setup.cfg.Port)
+	logger.Info(ctx, "Server initialization", "host", setup.cfg.Server.Host, "port", setup.cfg.Server.Port)
 
 	serverErr := make(chan error, 1)
 	go func() {

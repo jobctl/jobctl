@@ -24,18 +24,17 @@ func schedulerCmd() *cobra.Command {
 }
 
 func runScheduler(cmd *cobra.Command, _ []string) error {
-	setup, err := createSetup()
+	setup, err := createSetup(cmd.Context(), false)
 	if err != nil {
 		return fmt.Errorf("failed to create setup: %w", err)
 	}
-
-	ctx := setup.loggerContext(cmd.Context(), false)
 
 	if dagsDir, _ := cmd.Flags().GetString("dags"); dagsDir != "" {
 		setup.cfg.Paths.DAGsDir = dagsDir
 	}
 
-	logger.Info(ctx, "Scheduler initialization", "specsDirectory", setup.cfg.Paths.DAGsDir, "logFormat", setup.cfg.LogFormat)
+	ctx := setup.ctx
+	logger.Info(ctx, "Scheduler initialization", "specsDirectory", setup.cfg.Paths.DAGsDir, "logFormat", setup.cfg.Global.LogFormat)
 
 	scheduler, err := setup.scheduler()
 	if err != nil {
